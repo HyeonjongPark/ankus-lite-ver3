@@ -60,6 +60,7 @@ source("./src/function_collection.R", encoding = "utf-8")
 
 
 
+
 eda_func(sgsp)
 eda_func(sgsp_plus)
 eda_func(sgsp_minus)
@@ -81,6 +82,7 @@ func_plot(sgsp_plus %>% filter(item == "아몬드류", custclass == "할인점")
 func_plot(sgsp_plus %>% filter(item == "아몬드류", custclass == "대리점")) # 117
 func_plot(sgsp_plus %>% filter(item == "아몬드류", custclass == "온라인")) # 78
 
+func_plot(sgsp_plus %>% filter(custclass == "대리점")) # 78
 
 # 이 시기에 건포류는 판매하지 않음.
 #func_plot(sgsp_plus %>% filter(item == "건포류", custclass == "편의점"))

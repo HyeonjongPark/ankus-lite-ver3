@@ -42,7 +42,8 @@ hs_plus$item %>% unique()
 hs_plus$custclass %>% unique()
 hs_plus$custclass %>% table()
 
-
+hs_plus$item %>% unique()
+hs_plus$custclass %>% unique()
 
 func_plot(hs_plus %>% filter(custclass != "홍콩")) # 78
 

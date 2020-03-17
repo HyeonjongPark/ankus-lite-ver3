@@ -1,3 +1,12 @@
+conflict_prefer("count", "dplyr")
+
+
+wfood = as.data.table(wfood)
+wfood$invoicedate = as.Date(wfood$invoicedate, '%Y%m%d') 
+
+pub_hol$locdate = as.Date(pub_hol$locdate, "%Y%m%d")
+names(pub_hol)[1] = "invoicedate"
+
 
 ## 조인(wfood + pub_hol = wfood)
 
@@ -5,7 +14,6 @@ wfood = full_join(wfood, pub_hol)
 wfood$isholiday[is.na(wfood$isholiday)] = "N"
 
 wfood = wfood %>% arrange(invoicedate) %>% as.data.table() # 날짜별 정렬
-
 
 ## season 파생변수 생성
 wfood$season = NA 
@@ -22,15 +30,22 @@ wfood[wfood$invoicedate == "2019-02-05",]$isholiday = "Y"
 wfood[wfood$invoicedate == "2019-02-06",]$isholiday = "Y"
 wfood[wfood$invoicedate == "2019-03-01",]$isholiday = "Y"
 wfood[wfood$invoicedate == "2019-05-05",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-05-06",]$isholiday = "Y"
 wfood[wfood$invoicedate == "2019-05-12",]$isholiday = "Y"
-
-
-
-
-wfood$companyname %>% unique()
-wfood$item %>% unique()
-
-
+wfood[wfood$invoicedate == "2019-06-06",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-08-15",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-09-12",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-09-13",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-09-14",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-10-03",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-10-09",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2019-12-25",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2020-01-01",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2020-01-24",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2020-01-25",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2020-01-26",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2020-01-27",]$isholiday = "Y"
+wfood[wfood$invoicedate == "2020-03-01",]$isholiday = "Y"
 
 
 
@@ -39,6 +54,15 @@ wfood$item %>% unique()
 mgb = wfood %>% filter(companyname == "(주)머거본") 
 sgsp = wfood %>% filter(companyname == "세계식품(주)")
 hs = wfood %>% filter(companyname == "(주)홍선")
+
+
+
+
+
+
+
+
+
 
 wfood$itemseq %>% unique() %>% length() # 2170
 

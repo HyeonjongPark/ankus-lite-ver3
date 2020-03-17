@@ -74,11 +74,18 @@ func = function(x, preprocessing) {
 
 
 
-data = func(sgsp_plus %>% filter(item == "땅콩류", custclass == "대리점") , 0)
-hs_plus$custname %>% unique()
+data = func(sgsp_plus %>% filter(item == "너트류", custclass == "할인점") , 0)
 
-data = func(hs_plus %>% filter(custclass != "홍콩", custname == "쿠팡") , 0)
+data = func(sgsp_minus %>% filter(item == "땅콩류") , 0)
 
+hs_plus$itemname %>% table %>% sort(decreasing = T)
+data = func(hs_plus %>% filter(custclass != "홍콩") , 0)
+
+data = func(hs_minus %>% filter(custclass != "홍콩") , 0)
+
+data = func(mgb_plus %>% filter(item == "머거본", custclass == "대리점") , 0)
+
+conflict_prefer("arrange", "dplyr")
 
 ts_func = function(x, start_year, end_year) {
   data_ts <- x %>% 
@@ -90,7 +97,7 @@ ts_func = function(x, start_year, end_year) {
   training_ts <- window(data_ts, start = c(start_year, 1), end = c(end_year, 1))
   testing_ts <- window(data_ts, start = c(end_year, 1), end = c(end_year, 12))
   
-  autoplot(training_ts, series = "Training Data") + 
+  at =autoplot(training_ts, series = "Training Data") + 
     autolayer(testing_ts, series = "Test Data")
   
   ## ets 모델
@@ -99,9 +106,9 @@ ts_func = function(x, start_year, end_year) {
   
   forecast_AAA <- forecast(model_AAA, h = 12 * 1)
   
-  conflict_prefer("RMSE", "MLmetrics")
+
   aaa_rmse = RMSE(y_pred = forecast_AAA$mean, y_true = testing_ts) ## 9889.019
-  
+  aaa_mape = MAPE(y_pred = forecast_AAA$mean, y_true = testing_ts)
   
   
   ## hw 모델
@@ -111,23 +118,29 @@ ts_func = function(x, start_year, end_year) {
   forecast_hw <- forecast(model_hw, h = 12 * 1)
   
   hw_rmse = RMSE(y_pred = forecast_hw$mean, y_true = testing_ts) ## 8704.417
+  hw_mape = MAPE(y_pred = forecast_hw$mean, y_true = testing_ts)
   
-  
-  if(aaa_rmse < hw_rmse) {
+  if(aaa_mape < hw_mape) {
+    print("aaa rmse and mape ")
     print(aaa_rmse)
+    print(aaa_mape)
     return(autoplot(forecast_AAA, series = "AAA") +
       autolayer(testing_ts, series = "Actual"))
   }
   
   else {
+    print("hw rmse and mape")
     print(hw_rmse)
+    print(hw_mape)
     return(autoplot(forecast_hw, series = "HoltWinters") +
       autolayer(testing_ts, series = "Actual"))
 
   }
 }
-
-ts_func(data, 2017, 2019)
+#library(conflicted)
+#conflict_prefer("RMSE", "MLmetrics")
+#conflict_prefer("year", "lubridate")
+ts_func(data, 2015, 2019)
 
 
 
@@ -142,12 +155,13 @@ data_ts <- data %>%
   ts(frequency = 12, start = c(year(range(data$yearmonth)[[1]]), 1)) %>% 
   zoo::na.fill(fill = "extend")
 
+data_ts
 autoplot(decompose(data_ts))
 
 autoplot(decompose(window(data_ts, start = c(2017, 1), end = c(2019, 12))))
 
 
-training_ts <- window(data_ts, start = c(2017, 1), end = c(2019, 1))
+training_ts <- window(data_ts, start = c(2015, 1), end = c(2019, 1))
 testing_ts <- window(data_ts, start = c(2019, 1), end = c(2019, 12))
 
 autoplot(training_ts, series = "Training Data") + 
@@ -166,8 +180,12 @@ forecast_AAA <- forecast(model_AAA, h = 12 * 1)
 autoplot(forecast_AAA, series = "AAA") +
   autolayer(testing_ts, series = "Actual")
 
-conflict_prefer("RMSE", "MLmetrics")
+#conflict_prefer("RMSE", "MLmetrics")
 RMSE(y_pred = forecast_AAA$mean, y_true = testing_ts) ## 9889.019
+MAPE(y_pred = forecast_AAA$mean, y_true = testing_ts) ## 9889.019
+
+
+cbind(forecast_AAA, as.data.frame(testing_ts))
 
 
 

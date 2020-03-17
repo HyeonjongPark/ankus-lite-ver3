@@ -24,20 +24,17 @@ mgb %>% as.data.table()
 mgb = fread("./preprocessing-data/mgb.csv", encoding = "UTF-8")
 mgb$weekday = NULL
 
+mgb %>% as.data.table()
+
 
 mgb$invoicedate = as.Date(mgb$invoicedate, "%Y-%m-%d")
 
 day_levels <- c("일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일")
 mgb$weekday = factor(weekdays((mgb$invoicedate)), levels=day_levels, ordered=TRUE)
 
-mgb %>% as.data.table
+mgb$custclass %>% unique()
 
 
-## 발주 +
-mgb_plus = mgb %>% filter(qty > 0)
-
-## 반품 -
-mgb_minus = mgb %>% filter(qty < 0)
 
 
 func_plot(mgb_plus %>% filter(item == "머거본", custclass == "대리점")) # 78
@@ -72,4 +69,19 @@ mgb %>% filter(invoicedate <= "2018-12-30") %>%
   labs(x = "공휴일유무", y = "평균판매량") + ggtitle("공휴일 유무에 따른 판매량") +
   theme(title = element_text(size = 15))
 
+
+
+mgb = mgb[mgb$item != "블루다이아몬드",]
+mgb = mgb[is.na(mgb$item) == FALSE,]
+
+## 발주 +
+mgb_plus = mgb %>% filter(qty > 0)
+
+## 반품 -
+mgb_minus = mgb %>% filter(qty < 0)
+
+
+eda_func(mgb_plus %>% filter(item == "머거본"))
+
+func_plot(mgb_plus %>% filter(item == "머거본", custclass == "대리점"))
 
