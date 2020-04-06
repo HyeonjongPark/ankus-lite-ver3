@@ -3,7 +3,9 @@ library(tensorflow)
 library(ggplot2)
 library(MLmetrics)
 
+
 getwd()
+setwd("E:/data-analysis/ankus/ankus-lite-ver2")
 amzn <- read.csv("./original-data/input/amzn.us.txt")
 googl <- read.csv("./original-data/input/googl.us.txt")
 aapl <- read.csv("./original-data/input/aapl.us.txt")
@@ -14,6 +16,10 @@ sgsp270 = sgsp_plus %>% filter(itemname == "너트프라자 270G") %>%
 names(sgsp270) = c("Date", "Close")
 
 amzn %>% as.data.table
+googl %>% as.data.table
+aapl %>% as.data.table
+fb %>% as.data.table
+msft %>% as.data.table
 
 amzn$Date <- as.Date(amzn$Date)
 googl$Date <- as.Date(googl$Date)
@@ -390,42 +396,50 @@ RMSE(predictions_ap,Series_ap[5855:8363])
 RMSE(predictions_fb,Series_fb[967:1380])
 RMSE(predictions_ms,Series_ms[5588:7982])
 RMSE(predictions_sg,Series_sg[716:1021])
+
+MAPE(predictions_am,Series_am[3607:5152])
+MAPE(predictions_go,Series_go[2333:3332])
+MAPE(predictions_ap,Series_ap[5855:8363])
+MAPE(predictions_fb,Series_fb[967:1380])
+MAPE(predictions_ms,Series_ms[5588:7982])
 MAPE(predictions_sg,Series_sg[716:1021])
+
 
 data_am<-amzn[3607:5152,]
 data_am$Date <- as.Date(data_am$Date)
 merge_am<-cbind(data_am,predictions_am)
 ggplot(data = merge_am, aes(x = Date, y = Close))+ 
   geom_line(col='red')+
-  geom_line(aes(y=predictions_am),col='blue')+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Amazon.com")
+  geom_line(aes(y=predictions_am),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Amazon.com")
 
-data_ap<-aapl[5855:8363,]
-data_ap$Date <- as.Date(data_ap$Date)
-merge_ap<-cbind(data_ap,predictions_ap)
-ggplot(data = merge_ap, aes(x = Date, y = Close))+ 
-  geom_line(col='red')+
-  geom_line(aes(y=predictions_ap),col='blue')+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Apple, Inc.")
 
 data_go<-googl[2333:3332,]
 data_go$Date <- as.Date(data_go$Date)
 merge_go<-cbind(data_go,predictions_go)
 ggplot(data = merge_go, aes(x = Date, y = Close))+ 
   geom_line(col='red')+
-  geom_line(aes(y=predictions_go),col='blue')+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Alphabet Inc.")
+  geom_line(aes(y=predictions_go),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Alphabet Inc.")
+
+data_ap<-aapl[5855:8363,]
+data_ap$Date <- as.Date(data_ap$Date)
+merge_ap<-cbind(data_ap,predictions_ap)
+ggplot(data = merge_ap, aes(x = Date, y = Close))+ 
+  geom_line(col='red')+
+  geom_line(aes(y=predictions_ap),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Apple, Inc.")
 
 data_fb<-fb[967:1380,]
 data_fb$Date <- as.Date(data_fb$Date)
 merge_fb<-cbind(data_fb,predictions_fb)
 ggplot(data = merge_fb, aes(x = Date, y = Close))+ 
   geom_line(col='red')+
-  geom_line(aes(y=predictions_fb),col='blue')+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Facebook, Inc.")
+  geom_line(aes(y=predictions_fb),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Facebook, Inc.")
 
 data_ms<-msft[5588:7982,]
 data_ms$Date <- as.Date(data_ms$Date)
 merge_ms<-cbind(data_ms,predictions_ms)
 ggplot(data = merge_ms, aes(x = Date, y = Close))+ 
   geom_line(col='red')+
-  geom_line(aes(y=predictions_ms),col='blue')+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Microsoft Corp.")
+  geom_line(aes(y=predictions_ms),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Microsoft Corp.")
 
 
 data_sg<-sgsp270[716:1021,]
@@ -433,7 +447,7 @@ data_sg$Date <- as.Date(data_sg$Date)
 merge_sg<-cbind(data_sg,predictions_sg)
 ggplot(data = merge_sg, aes(x = Date, y = Close))+ 
   geom_line(col='red')+
-  geom_line(aes(y=predictions_sg+260),col='blue')+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Microsoft Corp.")
+  geom_line(aes(y=predictions_sg+260),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Microsoft Corp.")
 
 
 

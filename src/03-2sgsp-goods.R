@@ -147,3 +147,5 @@ p + geom_line(aes(x = yearmonth, y = mean_recommand), color = "red") +
   
 
 
+398 + 230 + 33 + 79 + 126 + 166 + 132 + 59 + 34
+

@@ -31,8 +31,8 @@ sgsp$weekday = factor(weekdays((sgsp$invoicedate)), levels=day_levels, ordered=T
 #############################################################################################
 
 
-
-rm(list = ls())
+setwd("E:/data-analysis/ankus/ankus-lite-ver2")
+write.csv(sgsp, "./preprocessing-data/sgsp_enc.csv")
 #fwrite(sgsp, "./preprocessing-data/sgsp.csv")
 sgsp = fread("./preprocessing-data/sgsp.csv", encoding = "UTF-8")
 sgsp$weekday = NULL
@@ -52,10 +52,10 @@ sgsp_plus = sgsp %>% filter(qty > 0)
 sgsp_minus = sgsp %>% filter(qty < 0)
 
 
+sgsp_plus$year = substr(sgsp_plus$invoicedate, 1,4)
+sgsp_plus$week = week(sgsp_plus$invoicedate)
+sgsp_plus$day = substr(sgsp_plus$invoicedate, 9,10)
 
-
-
-source("./src/function_collection.R", encoding = "utf-8")
 
 
 

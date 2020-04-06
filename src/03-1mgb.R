@@ -20,6 +20,8 @@ mgb %>% as.data.table()
 
 ### 데이터 로드
 
+getwd()
+setwd("E:/data-analysis/ankus/ankus-lite-ver2")
 
 mgb = fread("./preprocessing-data/mgb.csv", encoding = "UTF-8")
 mgb$weekday = NULL
@@ -33,6 +35,23 @@ day_levels <- c("일요일", "월요일", "화요일", "수요일", "목요일",
 mgb$weekday = factor(weekdays((mgb$invoicedate)), levels=day_levels, ordered=TRUE)
 
 mgb$custclass %>% unique()
+
+
+
+
+
+mgb = mgb[mgb$item != "블루다이아몬드",]
+mgb = mgb[is.na(mgb$item) == FALSE,]
+
+## 발주 +
+mgb_plus = mgb %>% filter(qty > 0)
+
+## 반품 -
+mgb_minus = mgb %>% filter(qty < 0)
+
+mgb_plus$year = substr(mgb_plus$invoicedate, 1,4)
+mgb_plus$week = week(mgb_plus$invoicedate)
+mgb_plus$day = substr(mgb_plus$invoicedate,9,10)
 
 
 
@@ -71,14 +90,6 @@ mgb %>% filter(invoicedate <= "2018-12-30") %>%
 
 
 
-mgb = mgb[mgb$item != "블루다이아몬드",]
-mgb = mgb[is.na(mgb$item) == FALSE,]
-
-## 발주 +
-mgb_plus = mgb %>% filter(qty > 0)
-
-## 반품 -
-mgb_minus = mgb %>% filter(qty < 0)
 
 
 eda_func(mgb_plus %>% filter(item == "머거본"))

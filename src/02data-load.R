@@ -1,6 +1,6 @@
 
 ## 라이브러리 로드
-
+rm(list=ls())
 
 
 library(dplyr)

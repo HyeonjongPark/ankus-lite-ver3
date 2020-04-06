@@ -156,3 +156,150 @@ eda_func = function(x) {
   return(p1 / p3 /  (p2 + p4))
 }
 
+
+
+
+
+
+
+func_plot_all = function(x) {
+  p1 = x %>% group_by(yearmonth,item) %>% summarise(qty_sum = sum(qty)) %>% 
+    ggplot(aes(x = yearmonth, y = qty_sum, group = item, colour = item)) + geom_line(size = 1.5) +
+    labs(x = "년월", y = "총판매량") + ggtitle("년월별 총 판매량") +
+    theme(title = element_text(size = 15),
+          axis.text.x = element_text(size=8,
+                                     face='italic',
+                                     angle=90))
+  
+  #p2 = func_sale(x) %>% ggplot(aes(x = date, y = count_per_sale, group = 1)) + 
+  #  geom_line(color = "skyblue", size = 1.5) + 
+  #  labs(x = "년월", y = "판매량") + ggtitle("년월별 주문건수 대비 판매량") +
+  #  theme(title = element_text(size = 15),
+  #        axis.text.x = element_text(size=8,
+  #                                   face='italic',
+  #                                   angle=90))
+  
+  
+  p3 = x %>% group_by(month, item) %>% summarise(qty_sum = sum(qty)) %>% 
+    ggplot(aes(x = month, y = qty_sum, group = item, colour = item)) + geom_line(size = 1.5) +
+    labs(x = "월", y = "총판매량") + ggtitle("월별 판매량") +
+    theme(title = element_text(size = 15),
+          axis.text.x = element_text(size=8,
+                                     face='italic',
+                                     angle=45))
+  
+  p4 = x %>% group_by(weekday,item) %>% summarise(qty_sum = sum(qty)) %>% 
+    ggplot(aes(x = weekday, y = qty_sum, fill = item)) + geom_bar(stat = "identity", width = 0.3, position = "dodge") +
+    labs(x = "요일", y = "총판매량") + ggtitle("요일별 판매량") +
+    theme(title = element_text(size = 15), 
+          axis.text.x = element_text(size=8,
+                                     face='italic',
+                                     angle=45))
+  
+  
+  p5 = x %>% group_by(season, item) %>% summarise(qty_sum = sum(qty)) %>% 
+    ggplot(aes(x = season, y = qty_sum, fill = item)) + geom_bar(stat = "identity", width = 0.3, position = "dodge" ) +
+    scale_fill_manual(values = c("#FFCC00", "#FF9900", 
+                                 "#FF6600", "#FF3300")) +
+    labs(x = "계절", y = "총판매량") + ggtitle("계절별 판매량") +
+    theme(title = element_text(size = 15),
+          axis.text.x = element_text(size=8,
+                                     face='italic',
+                                     angle=45))
+  
+  print(dim(x))
+  return((p1/p3)/(p4+p5))
+}
+
+
+
+
+## 제품별 애니메이션
+
+anim_plot = function(company, date_select) {
+  theme_set(theme_classic())
+  
+  company_g = company 
+  company_g = company_g %>% group_by(itemname, yearmonth) %>% summarise(qty_sum = sum(qty))
+  company_g$int_date = gsub("-","",company_g$yearmonth)
+  company_g$int_date = as.integer(company_g$int_date)
+  company_g = as.data.frame(company_g)
+  
+  v1=seq(201501,201512,1)
+  v2=seq(201601,201612,1)
+  v3=seq(201701,201712,1)
+  v4=seq(201801,201812,1)
+  v5=seq(201901,201912,1)
+  v6=seq(202001,202003,1)
+  
+  
+  
+  if(date_select == 2017) {
+    all_dt = c(v3,v4,v5,v6)
+  }
+  else if(date_select == 2015){
+    all_dt = c(v1,v2,v3,v4,v5,v6)
+  }
+  all_dt = as.data.frame(all_dt)
+  names(all_dt) = "int_date"
+  
+  
+  
+  item_uniq = company_g$itemname %>% unique()
+  
+  full_date_df = data.frame()
+  
+  for(i in 1:length(item_uniq)) {
+    si = company_g %>% filter(itemname == item_uniq[i])
+    mer = left_join(all_dt, si)
+    mer$itemname = unique(si$itemname)
+    mer$qty_sum[is.na(mer$qty_sum) == T] = 0
+    full_date_df = rbind(full_date_df, mer)
+    
+  }
+  
+  cum_company = data.frame()
+  for(i in 1:(length(item_uniq))) {
+    temp = full_date_df %>% filter(itemname == item_uniq[i])
+    temp = temp %>% arrange(int_date)
+    temp$qum_sum = cumsum(temp$qty_sum)
+    
+    cum_company = rbind(cum_company, temp)
+    print(i)
+  }
+  
+  cum_company = cum_company %>% group_by(int_date) %>% mutate(rank = min_rank(-qum_sum)*1,
+                                                              Value_rel = qum_sum/qum_sum[rank==1],
+                                                              Value_lbl = paste0(" ",qum_sum)) %>% 
+    filter(rank <= 20) %>% 
+    ungroup()
+  
+  
+  p <- ggplot(cum_company, aes(rank, group = itemname, 
+                               fill = as.factor(itemname), color = as.factor(itemname))) +
+    geom_tile(aes(y = qum_sum/2,
+                  height = qum_sum,
+                  width = 0.9), alpha = 0.8, color = NA) +
+    geom_text(aes(y = 0, label = paste(itemname, " ")), vjust = 0.2, hjust = 1) +
+    geom_text(aes(y=qum_sum,label = Value_lbl, hjust=0)) +
+    coord_flip(clip = "off", expand = FALSE) +
+    scale_y_continuous(labels = scales::comma) +
+    scale_x_reverse() +
+    guides(color = FALSE, fill = FALSE) +
+    
+    labs(title='{closest_state}', x = "", y = "발주량",
+         caption = "Sources: World food | Plot generated Hyeon Jong") +
+    theme(plot.title = element_text(hjust = 0, size = 22),
+          axis.ticks.y = element_blank(),  # These relate to the axes post-flip
+          axis.text.y  = element_blank(),  # These relate to the axes post-flip
+          plot.margin = margin(1,3,1,6, "cm")) +
+    
+    transition_states(int_date, transition_length = 4, state_length = 1) +
+    ease_aes('cubic-in-out')
+  
+  return(p)
+}
+
+
+
+
