@@ -2,8 +2,9 @@ library(keras)
 library(tensorflow)
 library(ggplot2)
 library(MLmetrics)
-
-
+library(data.table)
+rm(list=ls())
+# 
 getwd()
 setwd("E:/data-analysis/ankus/ankus-lite-ver2")
 amzn <- read.csv("./original-data/input/amzn.us.txt")
@@ -11,35 +12,40 @@ googl <- read.csv("./original-data/input/googl.us.txt")
 aapl <- read.csv("./original-data/input/aapl.us.txt")
 fb <- read.csv("./original-data/input/fb.us.txt")
 msft <- read.csv("./original-data/input/msft.us.txt")
-sgsp270 = sgsp_plus %>% filter(itemname == "너트프라자 270G") %>%
-  group_by(invoicedate) %>% summarise(sum_qty = sum(qty))
-names(sgsp270) = c("Date", "Close")
+ss = read.csv("./original-data/input/samsung.csv")
+ss$X = NULL
 
 amzn %>% as.data.table
 googl %>% as.data.table
 aapl %>% as.data.table
 fb %>% as.data.table
 msft %>% as.data.table
+ss %>% as.data.table
+
 
 amzn$Date <- as.Date(amzn$Date)
 googl$Date <- as.Date(googl$Date)
 aapl$Date <- as.Date(aapl$Date)
 fb$Date <- as.Date(fb$Date)
 msft$Date <- as.Date(msft$Date)
+ss$Date <- as.Date(ss$Date)
 
 Series_am<-amzn[,5]
 Series_go<-googl[,5]
 Series_ap<-aapl[,5]
 Series_fb<-fb[,5]
 Series_ms<-msft[,5]
-Series_sg<-sgsp270[,2]$Close
+Series_ss = ss[,5]
+Series_ss2 = ss[,4]
 
-ggplot(amzn, aes(Date, Close)) + geom_line(color = "#00AFBB")+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Amazon.com")
-ggplot(googl, aes(Date, Close)) + geom_line(color = "red")+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Alphabet Inc.")
-ggplot(aapl, aes(Date, Close)) + geom_line(color = "blue")+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Apple, Inc.")
-ggplot(fb, aes(Date, Close)) + geom_line(color = "green")+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Facebook, Inc.")
-ggplot(msft, aes(Date, Close)) + geom_line(color = "orange")+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Microsoft Corp.")
-ggplot(sgsp270, aes(Date, Close)) + geom_line(color = "brown")+ ylab("Цена на закрытие")+ xlab("Годы")+ggtitle("Microsoft Corp.")
+options(scipen = 100)
+
+ggplot(amzn, aes(Date, Close)) + geom_line(color = "#00AFBB")+ ylab("주가")+ xlab("시간")+ggtitle("Amazon.com")
+ggplot(googl, aes(Date, Close)) + geom_line(color = "red")+ ylab("주가")+ xlab("시간")+ggtitle("Alphabet Inc.")
+ggplot(aapl, aes(Date, Close)) + geom_line(color = "blue")+ ylab("주가")+ xlab("시간")+ggtitle("Apple, Inc.")
+ggplot(fb, aes(Date, Close)) + geom_line(color = "green")+ ylab("주가")+ xlab("시간")+ggtitle("Facebook, Inc.")
+ggplot(msft, aes(Date, Close)) + geom_line(color = "orange")+ ylab("주가")+ xlab("시간")+ggtitle("Microsoft Corp.")
+ggplot(ss, aes(Date, Close)) + geom_line(color = "blue")+ ylab("주가")+ xlab("시간")+ggtitle("Samsung, Inc.")
 
 
 diffed_am = diff(Series_am, differences = 1)
@@ -47,7 +53,8 @@ diffed_go = diff(Series_go, differences = 1)
 diffed_ap = diff(Series_ap, differences = 1)
 diffed_fb = diff(Series_fb, differences = 1)
 diffed_ms = diff(Series_ms, differences = 1)
-diffed_sg = diff(Series_sg, differences = 1)
+diffed_ss = diff(Series_ss, differences = 1)
+diffed_ss2 = diff(Series_ss2, differences = 1)
 
 lag_transform <- function(x, k= 1){
   
@@ -63,7 +70,8 @@ supervised_go = lag_transform(diffed_go, 1)
 supervised_ap = lag_transform(diffed_ap, 1)
 supervised_fb = lag_transform(diffed_fb, 1)
 supervised_ms = lag_transform(diffed_ms, 1)
-supervised_sg = lag_transform(diffed_sg, 1)
+supervised_ss = lag_transform(diffed_ss, 1)
+supervised_ss2 = lag_transform(diffed_ss2, 1)
 
 
 N_am = nrow(supervised_am)
@@ -91,10 +99,15 @@ n_ms = round(N_ms *0.7, digits = 0)
 train_ms = supervised_ms[1:n_ms, ]
 test_ms  = supervised_ms[(n_ms+1):N_ms,  ]
 
-N_sg = nrow(supervised_sg)
-n_sg = round(N_sg *0.7, digits = 0)
-train_sg = supervised_sg[1:n_sg, ]
-test_sg  = supervised_sg[(n_sg+1):N_sg,  ]
+N_ss = nrow(supervised_ss)
+n_ss = round(N_ss *0.7, digits = 0)
+train_ss = supervised_ss[1:n_ss, ]
+test_ss  = supervised_ss[(n_ss+1):N_ss,  ]
+
+N_ss2 = nrow(supervised_ss2)
+n_ss2 = round(N_ss2 *0.7, digits = 0)
+train_ss2 = supervised_ss2[1:n_ss2, ]
+test_ss2  = supervised_ss2[(n_ss2+1):N_ss2,  ]
 
 
 scale_data = function(train, test, feature_range = c(0, 1)) {
@@ -115,7 +128,8 @@ Scaled_go = scale_data(train_go, test_go, c(-1, 1))
 Scaled_ap = scale_data(train_ap, test_ap, c(-1, 1))
 Scaled_fb = scale_data(train_fb, test_fb, c(-1, 1))
 Scaled_ms = scale_data(train_ms, test_ms, c(-1, 1))
-Scaled_sg = scale_data(train_sg, test_sg, c(-1, 1))
+Scaled_ss = scale_data(train_ss, test_ss, c(-1, 1))
+Scaled_ss2 = scale_data(train_ss2, test_ss2, c(-1, 1))
 
 
 y_train_am = Scaled_am$scaled_train[, 2]
@@ -143,10 +157,16 @@ x_train_ms = Scaled_ms$scaled_train[, 1]
 y_test_ms = Scaled_ms$scaled_test[, 2]
 x_test_ms = Scaled_ms$scaled_test[, 1]
 
-y_train_sg = Scaled_sg$scaled_train[, 2]
-x_train_sg = Scaled_sg$scaled_train[, 1]
-y_test_sg = Scaled_sg$scaled_test[, 2]
-x_test_sg = Scaled_sg$scaled_test[, 1]
+y_train_ss = Scaled_ss$scaled_train[, 2]
+x_train_ss = Scaled_ss$scaled_train[, 1]
+y_test_ss = Scaled_ss$scaled_test[, 2]
+x_test_ss = Scaled_ss$scaled_test[, 1]
+
+y_train_ss2 = Scaled_ss2$scaled_train[, 2]
+x_train_ss2 = Scaled_ss2$scaled_train[, 1]
+y_test_ss2 = Scaled_ss2$scaled_test[, 2]
+x_test_ss2 = Scaled_ss2$scaled_test[, 1]
+
 
 invert_scaling = function(Scaled, scaler, feature_range = c(0, 1)){
   min = scaler[1]
@@ -166,11 +186,13 @@ invert_scaling = function(Scaled, scaler, feature_range = c(0, 1)){
 
 #### *Построение модели на обучающей выборке*
 
+batch_size = 1
+units = 1
+
+
 dim(x_train_am) <- c(length(x_train_am), 1, 1)
 X_shape2_am = dim(x_train_am)[2]
 X_shape3_am = dim(x_train_am)[3]
-batch_size = 1                
-units = 1   
 
 dim(x_train_go) <- c(length(x_train_go), 1, 1)
 X_shape2_go = dim(x_train_go)[2]
@@ -188,9 +210,20 @@ dim(x_train_ms) <- c(length(x_train_ms), 1, 1)
 X_shape2_ms = dim(x_train_ms)[2]
 X_shape3_ms = dim(x_train_ms)[3]
 
-dim(x_train_sg) <- c(length(x_train_sg), 1, 1)
-X_shape2_sg = dim(x_train_sg)[2]
-X_shape3_sg = dim(x_train_sg)[3]
+x_train_ss = c(x_train_ss, x_train_ss2)
+x_test_ss = c(x_test_ss, x_test_ss2)
+y_train_ss = cbind(y_train_ss, y_train_ss2)
+y_test_ss = cbind(y_test_ss, y_test_ss2)
+
+
+## 실험
+x_train_ss <- array(x_train_ss, c(length(x_train_ss)/2, 1, 2))
+dim(x_train_ss)
+X_shape2_ss = dim(x_train_ss)[2]
+X_shape3_ss = dim(x_train_ss)[3]
+
+x_test_ss <- array(x_test_ss, c(length(x_test_ss)/2, 1, 2))
+
 
 model_am <- keras_model_sequential() 
 model_am%>%
@@ -217,10 +250,12 @@ model_ms%>%
   layer_lstm(units, batch_input_shape = c(batch_size, X_shape2_ms, X_shape3_ms), stateful= TRUE)%>%
   layer_dense(units = 1)
 
-model_sg <- keras_model_sequential() 
-model_sg%>%
-  layer_lstm(units, batch_input_shape = c(batch_size, X_shape2_sg, X_shape3_sg), stateful= TRUE)%>%
+model_ss <- keras_model_sequential() 
+model_ss%>%
+  layer_lstm(units, batch_input_shape = c(batch_size, X_shape2_ss, X_shape3_ss), stateful= TRUE)%>%
   layer_dense(units = 1)
+
+
 
 model_am %>% compile(
   loss = 'mean_squared_error',
@@ -257,12 +292,12 @@ model_ms %>% compile(
 )
 summary(model_ms)
 
-model_sg %>% compile(
+model_ss %>% compile(
   loss = 'mean_squared_error',
   optimizer = optimizer_adam( lr= 0.02, decay = 1e-6 ),  
   metrics = c('accuracy')
 )
-summary(model_sg)
+summary(model_ss)
 
 
 Epochs = 50   
@@ -292,8 +327,8 @@ for(i in 1:Epochs ){
 }
 
 for(i in 1:Epochs ){
-  model_sg %>% fit(x_train_sg, y_train_sg, epochs=1, batch_size=batch_size, verbose=1, shuffle=FALSE)
-  model_sg %>% reset_states()
+  model_ss %>% fit(x_train_ss, y_train_ss, epochs=1, batch_size=batch_size, verbose=1, shuffle=FALSE)
+  model_ss %>% reset_states()
 }
 
 
@@ -372,19 +407,19 @@ for(i in 1:L_ms){
   predictions_ms[i] <- yhat_ms
 }
 
-L_sg = length(x_test_sg)
-scaler_sg = Scaled_sg$scaler
-predictions_sg = numeric(L_sg)
-for(i in 1:L_sg){
-  X_sg = x_test_sg[i]
-  dim(X_sg) = c(1,1,1)
-  yhat_sg = model_sg %>% predict(X_sg, batch_size=batch_size)
+L_ss = length(x_test_ss[,,1])
+scaler_ss = Scaled_ss$scaler
+predictions_ss = numeric(L_ss)
+for(i in 1:L_ss){
+  X_ss = x_test_ss[,,][i,]
+  dim(X_ss) = c(1,1,2)
+  yhat = model_ss %>% predict(X_ss, batch_size=batch_size)
   # invert scaling
-  yhat_sg = invert_scaling(yhat, scaler_sg,  c(-1, 1))
+  yhat_ss = invert_scaling(yhat, scaler_ss,  c(-1, 1))
   # invert differencing
-  yhat_sg  = yhat_sg + Series_sg[(n_sg+i)]
+  yhat_ss  = yhat_ss + Series_ss[(n_ss+i)]
   # store
-  predictions_sg[i] <- yhat_sg
+  predictions_ss[i] <- yhat_ss
 }
 
 
@@ -395,14 +430,14 @@ RMSE(predictions_go,Series_go[2333:3332])
 RMSE(predictions_ap,Series_ap[5855:8363])
 RMSE(predictions_fb,Series_fb[967:1380])
 RMSE(predictions_ms,Series_ms[5588:7982])
-RMSE(predictions_sg,Series_sg[716:1021])
+RMSE(predictions_ss,Series_ss[4194:5990])
 
 MAPE(predictions_am,Series_am[3607:5152])
 MAPE(predictions_go,Series_go[2333:3332])
 MAPE(predictions_ap,Series_ap[5855:8363])
 MAPE(predictions_fb,Series_fb[967:1380])
 MAPE(predictions_ms,Series_ms[5588:7982])
-MAPE(predictions_sg,Series_sg[716:1021])
+MAPE(predictions_ss,Series_ss[4194:5990])
 
 
 data_am<-amzn[3607:5152,]
@@ -442,12 +477,14 @@ ggplot(data = merge_ms, aes(x = Date, y = Close))+
   geom_line(aes(y=predictions_ms),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Microsoft Corp.")
 
 
-data_sg<-sgsp270[716:1021,]
-data_sg$Date <- as.Date(data_sg$Date)
-merge_sg<-cbind(data_sg,predictions_sg)
-ggplot(data = merge_sg, aes(x = Date, y = Close))+ 
+data_ss<-ss[4194:5990,]
+data_ss$Date <- as.Date(data_ss$Date)
+data_ss %>% nrow()
+predictions_ss %>% length
+merge_ss<-cbind(data_ss,predictions_ss)
+ggplot(data = merge_ss, aes(x = Date, y = Close))+ 
   geom_line(col='red')+
-  geom_line(aes(y=predictions_sg+260),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Microsoft Corp.")
+  geom_line(aes(y=predictions_ss+260),col='blue')+ ylab("주가")+ xlab("시간")+ggtitle("Microsoft Corp.")
 
 
 
